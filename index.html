@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>下拉刷新</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.0,user-scalable=0"/>
+    <link rel="stylesheet" type="text/css" href="../restyle.css" />
+    <script src="../common.js" type="text/javascript"></script>
+    <style>
+        .refresh-con{
+            position: absolute;
+            left: 0;
+            top: -60px;
+            width: 100%;
+            height: 40px;
+            padding-top: 20px;
+            background-color: #ccc;
+        }
+        .refresh-con p{
+            margin: 0 auto;
+            width: 120px;
+        }
+        .refresh-con i{
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            background: url(./img/down.jpg) no-repeat;
+            background-size: contain;
+            transition: 0.25s;
+        }
+        .refresh-con span{
+            text-align: center;
+            display: inline-block;
+            vertical-align: super;
+            display: inline-block;
+        }
+
+        .list-con{
+            border-top:1px solid #ccc;
+        }
+        .list-con li{
+            height:30px;
+            line-height: 30px;
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <!--<div class="refresh-con">
+        <p><i></i><span>下拉刷新</span></p>
+    </div>-->
+    <ul id="listCon" class="list-con">
+        <li>我是列表item5</li>
+        <li>我是列表item4</li>
+        <li>我是列表item3</li>
+        <li>我是列表item2</li>
+        <li>我是列表item1</li>
+        <li>我是列表item5</li>
+        <li>我是列表item4</li>
+        <li>我是列表item3</li>
+        <li>我是列表item2</li>
+        <li>我是列表item1</li>
+        <li>我是列表item5</li>
+        <li>我是列表item4</li>
+        <li>我是列表item3</li>
+        <li>我是列表item2</li>
+        <li>我是列表item1</li>
+        <li>我是列表item5</li>
+        <li>我是列表item4</li>
+        <li>我是列表item3</li>
+        <li>我是列表item2</li>
+        <li>我是列表item1</li>
+        <li>我是列表item5</li>
+        <li>我是列表item4</li>
+        <li>我是列表item3</li>
+        <li>我是列表item2</li>
+        <li>我是列表item1</li>
+        <li>我是列表item5</li>
+        <li>我是列表item4</li>
+        <li>我是列表item3</li>
+        <li>我是列表item2</li>
+        <li>我是列表item1</li>
+        <li>我是列表item5</li>
+        <li>我是列表item4</li>
+        <li>我是列表item3</li>
+        <li>我是列表item2</li>
+        <li>我是列表item1</li>
+    </ul>
+</body>
+<script>
+    var listCon=document.getElementById('listCon'),totalIndex=5;
+    function addListItem(down){
+        var arrStr=[];
+        for(var i=0;i<5;i++){
+            arrStr.push('<li>我是列表item'+(++totalIndex)+'</li>');
+        }
+        var htmlstr=arrStr.reverse().join('');
+        listCon.innerHTML=down?listCon.innerHTML+htmlstr:htmlstr+listCon.innerHTML;
+    }
+    (function(win){
+        function refreshUpload(option){
+            new refreshLoad(option);
+        }
+        function refreshLoad(option){
+            var defaultObj={
+                popdown:'下拉刷新',
+                popup:'放开即可刷新',
+                popload:'数据加载中...',
+                loadFn:function(){},
+                downLoadValue:30,
+                downLoad:function(){}
+            };
+            this.settings=copyObj(defaultObj,option);
+            this.container=document.body;
+            //this.container.style.transition="all 0.5s";
+            this.init();
+        }
+        refreshLoad.prototype.init=function(){
+            this.createFreshDom();//创建下拉刷新Dom
+            this.eventHandle();
+        }
+        refreshLoad.prototype.createFreshDom=function(){
+            this.refreshCon=document.createElement('div');
+            this.refreshCon.className="refresh-con";
+            var phtml=document.createElement('p');
+            this.refreshIcon=document.createElement('i');
+            this.refreshContent=document.createElement('span');
+            this.refreshContent.innerHTML=this.settings.popdown;
+            phtml.appendChild(this.refreshIcon);
+            phtml.appendChild(this.refreshContent);
+            this.refreshCon.appendChild(phtml);
+            document.body.appendChild(this.refreshCon);
+        }
+        refreshLoad.prototype.eventHandle= function () {
+            var _this=this,startY,preY=-1,startdown=false,istop=false,loadMore=false,
+              moveY= 0;//记录当下滑超过80后 差值（e.clientY-startY）
+            /*向下滚动加载*/
+            comFn.eventHandel.addEvent(window,'scroll',function () {
+                var bodyScrollH=document.body.scrollHeight,screenH=window.screen.height
+                  scrolltop=document.body.scrollTop?document.body.scrollTop:document.documentElement.scrollTop;
+                if((bodyScrollH-screenH-scrolltop)<=_this.settings.downLoadValue)_this.settings.downLoad();
+            });
+            comFn.eventHandel.addEvent(document.body,'mousedown touchstart',function (e) {
+                moveY=0;
+                if(document.body.scrollTop==0){
+                    startdown=true;
+                }
+            })
+            comFn.eventHandel.addEvent(document.body,'mousemove touchmove',function (e) {
+                if(!startdown)return false;
+                e= e.touches?e.touches[0]:e;
+                if(preY!=-1&&preY < e.clientY&&document.body.scrollTop==0&&!istop){//手势向下划 想下滑并第一次scroll为0时 记录startY值
+                    document.body.style.overflow='hidden';
+                    istop=true;
+                    startY = e.clientY;//记录当时的y值
+                }
+                //console.log(document.body.scrollTop)
+                if(istop){
+                    var value=e.clientY-startY-moveY,staCha1=staCha2=true;
+                    if(value<65&&staCha1){//过临界值 只变化一次 防止多次操作DOM
+                        staCha1=false;
+                        staCha2=true;
+                        loadMore=false;
+                        _this.stateChange(1);
+                    }
+                    if(value>=65&&staCha2){
+                        staCha2=false;
+                        staCha1=true;
+                        _this.stateChange(2);
+                        loadMore=true;
+                    }
+                    _this.moveTo(value<0?0:(value>80?80:value),true);
+                }else{
+                    document.body.style.overflow='scroll';
+                }
+                preY= e.clientY;
+            })
+            comFn.eventHandel.addEvent(document.body,'mouseup touchend',function (e) {
+                if(loadMore&&istop){
+                    _this.stateChange(3);
+                    _this.moveTo(60);
+                    _this.settings.loadFn(function(){
+                        _this.moveTo(0);
+                    });
+                }else{
+                    istop?_this.moveTo(0):'';
+                }
+                if(istop){
+                    document.body.style.overflow='scroll';
+                }
+                startdown=false;
+                istop=false;
+                preY=-1;
+            })
+        }
+        refreshLoad.prototype.stateChange= function (state) {
+            switch (state){
+                case 1:this.refreshContent.innerHTML=this.settings.popdown;
+                        this.refreshIcon.style.background='url(img/down.jpg) no-repeat';
+                        this.refreshIcon.style.transform="rotate(0deg)";
+                        this.refreshIcon.style.backgroundSize='contain';break;
+                case 2:this.refreshContent.innerHTML=this.settings.popup;
+                        this.refreshIcon.style.transform="rotate(180deg)";break;
+                case 3:this.refreshContent.innerHTML=this.settings.popload;
+                        this.refreshIcon.style.background='url(img/loading.jpg) no-repeat';
+                        this.refreshIcon.style.backgroundSize='contain';break;
+            }
+        }
+        refreshLoad.prototype.moveTo=function(value,haveNoTransition){
+            this.container.style.transition=haveNoTransition?"":"all 0.5s";
+            this.container.style.transform='translate(0,'+value+'px)';
+        }
+        function copyObj(objOrgin,objNew){
+            var o=objOrgin.constructor===Array?[]:{};
+            for(var i in objOrgin){
+                if(objOrgin.hasOwnProperty(i)&&objNew.hasOwnProperty(i)){
+                    typeof objOrgin[i]=='object'?copyObj(objOrgin[i],objNew[i]):(objOrgin[i]=objNew[i]);
+                }
+            }
+            return objOrgin;
+        }
+        win['refreshUpload']=refreshUpload;
+        /*****************************************************************************/
+        function eventHandl(){
+
+        }
+        eventHandl.prototype.addEvent=function(obj,type,fn){
+            var typeArr=[];
+            if(type.indexOf(' ')>0){
+                typeArr=type.split(' ');
+            }else{
+                typeArr.push(type);
+            }
+            for(var i=0;i<typeArr.length;i++){
+                if(win.addEventListener){
+                    obj.addEventListener(typeArr[i],fn,false);
+                }else if(win.attachEvent){
+                    obj.attachEvent('on'+typeArr[i],fn);
+                }else{
+                    obj['on'+typeArr[i]]=fn;
+                }
+            }
+        }
+        eventHandl.prototype.removeEvent=function(obj,type,fn){
+            var typeArr=[];
+            if(type.indexOf(' ')>0){
+                typeArr=type.split(' ');
+            }else{
+                typeArr.push(type);
+            }
+            for(var i=0;i<typeArr.length;i++){
+                if(win.removeEventListener){
+                    obj.removeEventListener(typeArr[i],fn,false);
+                }else if(win.detachEvent){
+                    obj.detachEvent('on'+typeArr[i],fn);
+                }else{
+                    obj['on'+typeArr[i]]=null;
+                }
+            }
+        }
+        win['comFn']={
+            eventHandel:new eventHandl()
+        }
+    })(window)
+
+
+
+    refreshUpload({
+        loadFn:function(callback){
+            setTimeout(function(){
+                addListItem();
+                if(callback)callback();
+            },1000);
+        },
+        downLoad:function () {
+            setTimeout(function(){
+                addListItem(true);
+            })
+        }
+    });
+</script>
+</html>
