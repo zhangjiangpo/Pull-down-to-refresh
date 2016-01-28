@@ -50,7 +50,7 @@
     <!--<div class="refresh-con">
         <p><i></i><span>下拉刷新</span></p>
     </div>-->
-    <input style="position: fixed;top:0;left:0;" type="text" id="info"/>
+    <input style="position: fixed;top:300px;left:0;" type="text" id="info"/>
     <ul id="listCon" class="list-con">
         <li>我是列表item5</li>
         <li>我是列表item4</li>
@@ -154,7 +154,7 @@
                 var eve=e;
                 if(!startdown)return false;
                 e= e.touches?e.touches[0]:e;
-                info.value=preY+"|"+ e.clientY;
+                info.value=startY+"|"+ e.clientY;
                 if(startY>0&&startY < e.clientY&&document.body.scrollTop==0) {//手势向下划 想下滑并第一次scroll为0时 记录startY值
                     eve.preventDefault();
                     //startY = e.clientY;//记录当时的y值
@@ -172,7 +172,15 @@
                         _this.stateChange(2);
                         loadMore = true;
                     }
-                    _this.moveTo(value < 0 ? 0 : (value > 80 ? 80 : value), true);
+                    var mvalue='';
+                    if(value>80){
+                        mvalue=80+(value-80)/2;
+                    }
+                    startY=value > 80 ? mvalue:startY;
+                    _this.moveTo(value < 0 ? 0 : (value > 80 ? mvalue : value), true);
+                }else if(startY>0&&startY > e.clientY&&document.body.scrollTop==0){
+                    startY= e.pageY;
+                    _this.moveTo(0,true);
                 }
                 //preY= e.clientY;
             })
